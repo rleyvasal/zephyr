@@ -2426,9 +2426,15 @@ void ull_conn_update_parameters(struct ll_conn *conn, uint8_t is_cu_proc, uint8_
 					   conn->apto_reload;
 #endif /* CONFIG_BT_CTLR_LE_PING */
 
-	if (is_cu_proc) {
-		conn->supervision_expire = 0U;
-	}
+	/* Restart the supervision countdown at the instant, whichever procedure
+	 * (Connection Update or Connection Parameters Request) set the new
+	 * parameters. The countdown is kept in connection events, so one left
+	 * running across an interval change is rescaled: going from 60 ms to
+	 * 15 ms turns a 4 s timeout into about 1 s, and the link is lost unless
+	 * the peer is heard in that second.
+	 */
+	ARG_UNUSED(is_cu_proc);
+	conn->supervision_expire = 0U;
 
 	/* Update ACL ticker */
 	ull_conn_update_ticker(conn, ticks_win_offset, ticks_slot_overhead, periodic_us,
